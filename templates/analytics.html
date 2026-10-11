@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - Student Budget Assistant{% endblock %}
+
+{% block content %}
+<div class="card full-width">
+    <h2>📊 Spending Analytics</h2>
+    
+    {% if spending_by_category %}
+    <div class="grid">
+        {% for category, amount in spending_by_category|dictsort(reverse=True, attribute=1) %}
+        <div style="padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+            <h3 style="color: #667eea; margin-bottom: 10px;">{{ category }}</h3>
+            <div style="font-size: 1.8em; font-weight: bold; color: #333;">
+                ${{ "%.2f"|format(amount) }}
+            </div>
+            <div style="color: #999; font-size: 0.9em; margin-top: 5px;">
+                {{ "%.1f"|format((amount / total_spent * 100) if total_spent > 0 else 0) }}% of total
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h3 style="color: #667eea; margin-bottom: 15px;">Distribution Breakdown</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category, amount in spending_by_category|dictsort(reverse=True, attribute=1) %}
+                <tr>
+                    <td>{{ category }}</td>
+                    <td>${{ "%.2f"|format(amount) }}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ (amount / total_spent * 100)|int }}%;"></div>
+                        </div>
+                        {{ "%.1f"|format((amount / total_spent * 100) if total_spent > 0 else 0) }}%
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-radius: 8px; border-left: 4px solid #667eea;">
+        <h3 style="color: #667eea; margin-bottom: 10px;">💡 Insights</h3>
+        <ul style="color: #333; line-height: 1.8;">
+            {% set top_category = spending_by_category|dictsort(reverse=True, attribute=1)|first %}
+            <li><strong>Highest spending category:</strong> {{ top_category[0] }} ({{ "%.1f"|format((top_category[1] / total_spent * 100)) }}% of budget)</li>
+            <li><strong>Total spending:</strong> ${{ "%.2f"|format(total_spent) }}</li>
+            <li><strong>Number of categories:</strong> {{ spending_by_category|length }}</li>
+            {% if spending_by_category['Food'] is defined %}
+            <li><strong>Food spending:</strong> ${{ "%.2f"|format(spending_by_category['Food']) }} - Consider meal planning to reduce costs</li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    {% else %}
+    <p style="color: #999; text-align: center; padding: 40px;">No spending data yet. Start tracking expenses to see analytics!</p>
+    {% endif %}
+</div>
+
+<div class="card full-width">
+    <h2>💡 Money-Saving Tips</h2>
+    <div class="grid">
+        <div style="padding: 15px; background: #fff3cd; border-radius: 8px;">
+            <h3 style="color: #856404;">🍽️ Food & Dining</h3>
+            <ul style="color: #333; padding-left: 20px;">
+                <li>Meal prep on weekends</li>
+                <li>Pack lunch instead of eating out</li>
+                <li>Look for student discounts</li>
+                <li>Buy generic brands</li>
+            </ul>
+        </div>
+        
+        <div style="padding: 15px; background: #d4edda; border-radius: 8px;">
+            <h3 style="color: #155724;">🚗 Transportation</h3>
+            <ul style="color: #333; padding-left: 20px;">
+                <li>Use student transit passes</li>
+                <li>Carpool with friends</li>
+                <li>Bike or walk when possible</li>
+                <li>Check for student discounts</li>
+            </ul>
+        </div>
+        
+        <div style="padding: 15px; background: #cfe2ff; border-radius: 8px;">
+            <h3 style="color: #084298;">🎬 Entertainment</h3>
+            <ul style="color: #333; padding-left: 20px;">
+                <li>Use campus events (usually free)</li>
+                <li>Movie nights at home instead</li>
+                <li>Check for student streaming discounts</li>
+                <li>Library movie rentals</li>
+            </ul>
+        </div>
+        
+        <div style="padding: 15px; background: #e2e3e5; border-radius: 8px;">
+            <h3 style="color: #383d41;">📚 Study Materials</h3>
+            <ul style="color: #333; padding-left: 20px;">
+                <li>Buy used textbooks</li>
+                <li>Share textbooks with classmates</li>
+                <li>Use library resources</li>
+                <li>Look for free educational apps</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
