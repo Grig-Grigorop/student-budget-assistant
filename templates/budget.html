@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Budget - Student Budget Assistant{% endblock %}
+
+{% block content %}
+<div class="card full-width">
+    <h2>🎯 Set Monthly Budget Limits</h2>
+    <p style="color: #666; margin-bottom: 20px;">Set budget limits for each category to get smart alerts when you're overspending.</p>
+    
+    <form id="budgetForm">
+        <div class="grid">
+            {% for category in categories %}
+            {% set budget_item = budgets|selectattr('category', 'equalto', category)|first %}
+            <div class="form-group">
+                <label for="budget_{{ category }}">{{ category }}</label>
+                <input type="number" 
+                       id="budget_{{ category }}" 
+                       name="budget_{{ category }}" 
+                       class="budget-input"
+                       data-category="{{ category }}"
+                       step="0.01" 
+                       min="0" 
+                       value="{{ budget_item.limit if budget_item else '' }}"
+                       placeholder="Enter amount">
+                <button type="button" class="save-btn" data-category="{{ category }}" style="margin-top: 5px; width: 100%;">Save</button>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+
+<div class="card full-width">
+    <h2>📊 Current Budget Overview</h2>
+    {% if budgets %}
+        {% for budget in budgets|sort(attribute='category') %}
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <strong>{{ budget.category }}</strong>
+                <span>${{ "%.2f"|format(budget.limit) }}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="color: #999;">No budgets set yet. Create one above!</p>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('.save-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const category = this.getAttribute('data-category');
+        const limitInput = document.getElementById('budget_' + category);
+        const limit = parseFloat(limitInput.value);
+
+        if (isNaN(limit) || limit < 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        const formData = {
+            category: category,
+            limit: limit
+        };
+
+        fetch('/budget', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`Budget for ${category} saved successfully!`);
+                location.reload();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+});
+</script>
+{% endblock %}
